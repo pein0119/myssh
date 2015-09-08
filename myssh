@@ -1,0 +1,81 @@
+#! /usr/bin/env bash
+
+# 用途：快速登陆到指定机器
+# 使用：
+# ./myssh (显示提示)
+# ./myssh 缩写 (登陆到该机器)
+
+# 机器名缩写提示
+USAGE=(
+    "work       => 开发机的work权限"
+    "root       => 开发机的root权限"
+    "rdnew      => newlab的rd权限"
+    "wnew       => newlab的work权限"
+    "dootafe    => 脚本机"
+    "nxlog      => 日志机"
+    "nx01       => 内网nginx机器1"
+    "nx02       => 内网nginx机器2"
+    "wan01      => 外网nginx机器1"
+    "wan02      => 外网nginx机器2"
+    "wsolrm     => '主solr work权限'"
+    "rsolrm     => '主solr root权限'"
+    "wsolrs     => '从solr work权限'"
+    "rsolrs     => '从solr root权限'"
+)
+
+# bash3 关联数组
+# 机器缩写 => 机器
+MAP=(
+    "work:work@10.6.13.20" 
+    "root:root@10.6.13.20"
+    "rdnew:rd@newlab"
+    "wnew:work@newlab"
+    "dootafe:work@dfz-dootafe-01"
+    "nxlog:rd@dfz-nxlog-01"
+    "wsolrm:work@10.5.5.13"
+    "rsolrm:root@10.5.5.13"
+    "wsolrs:work@10.5.5.45"
+    "rsolrs:root@10.5.5.45"
+)
+
+# nginx机器 缩写
+NXMAP=(
+    "nx01:dfz-nx-01"
+    "nx02:dfz-nx-02"
+    "wan01:dfz-wannx-01"
+    "wan02:dfz-wannx-02"
+)
+
+# 我的跳板机
+MY_BOARD="xiaocongzhang@osys11.meilishuo.com"
+
+# rd跳板机
+RD_BOARD="rdol@osys11.meilishuo.com"
+
+# 提示
+if [ $# -ne 1 ]; then
+    for tip in "${USAGE[@]}"; do
+        echo $tip
+    done
+    exit 0
+fi  
+
+# 登录普通机器
+for m in "${MAP[@]}"; do
+    short_name=${m%%:*}
+    if [ $1 = $short_name ]; then
+        machine_name=${m#*:}
+        ssh -t $MY_BOARD ssh -t $machine_name
+        exit
+    fi
+done
+
+# 登录nginx机器
+for n in "${NXMAP[@]}"; do
+    short_name=${n%%:*}
+    if [ $1 = $short_name ]; then
+        machine_name=${n#*:}
+        ssh -t $MY_BOARD ssh -t $RD_BOARD ssh -t $machine_name
+        exit
+    fi
+done
